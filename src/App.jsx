@@ -1,3 +1,3 @@
-const App = () => <div>Hello from React</div>;
+const App = () => <div>slingercode cloud</div>;
 
 export default App;
