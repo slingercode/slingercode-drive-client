@@ -1,10 +1,16 @@
 FROM node:16.14.0-alpine as build
 
+ARG REACT_APP_SERVER_URL=
+
+ENV REACT_APP_SERVER_URL=${REACT_APP_SERVER_URL}
+
 WORKDIR /usr/app
 
 COPY [".", "./"]
 
-RUN npm install --prod && npm run build
+RUN npm install --production --no-audit --quiet
+
+RUN npm run build
 
 FROM nginx:1.20.2-alpine
 
