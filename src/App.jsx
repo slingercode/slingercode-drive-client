@@ -1,25 +1,11 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
 
-const App = () => {
-  const [connection, setConnection] = useState(false);
+import Home from './pages';
 
-  useEffect(() => {
-    const getConnection = async () => {
-      const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const { status } = await axios.get(`${serverUrl}/ping`);
-      setConnection(status === 200 ? true : false);
-    };
-
-    getConnection();
-  }, []);
-
-  return (
-    <div>
-      slingercode cloud
-      <div>{connection ? "Server" : "No connection"}</div>
-    </div>
-  );
-};
+const App = () => (
+  <Routes>
+    <Route path="/" element={<Home />} />
+  </Routes>
+);
 
 export default App;
