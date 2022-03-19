@@ -7,6 +7,10 @@
     "url": "https://slingercode.omg.lol",
     "email": "noelespinocordova@tutanota.com"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slingercode/slingercode-drive-client.git"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
