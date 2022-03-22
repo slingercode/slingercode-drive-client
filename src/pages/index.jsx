@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 
 const Home = () => {
   const [connection, setConnection] = useState(false);
-  const [image, setImage] = useState(null);
+  const [pngImage, setPngImage] = useState(null);
+  const [webpImage, setWebpImage] = useState(null);
 
   useEffect(() => {
     const getConnection = async () => {
@@ -16,15 +17,24 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const getImage = async () => {
+    const getPNGImage = async () => {
       const serverUrl = process.env.REACT_APP_SERVER_URL;
       const response = await axios.get(`${serverUrl}/aws`);
-      setImage(response.data);
+      setPngImage(response.data);
     };
   
-    getImage();
+    getPNGImage();
   }, []);
+
+  useEffect(() => {
+    const getWEBPImage = async () => {
+      const serverUrl = process.env.REACT_APP_SERVER_URL;
+      const response = await axios.get(`${serverUrl}/aws/webp`);
+      setWebpImage(response.data);
+    };
   
+    getWEBPImage();
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -32,14 +42,25 @@ const Home = () => {
         {`slingercode's cloud: Server connection ${connection}`}
       </div>
 
-
       <div className="flex flex-col items-center">
-        Image
+        PNG Image
 
-        {image && (
+        {pngImage && (
           <img
             alt="from aws"
-            src={`data:image/png;base64,${image}`}
+            src={`data:image/png;base64,${pngImage}`}
+            className="mt-5 w-8/12"
+          />
+        )}
+      </div>
+
+      <div className="flex flex-col items-center">
+        WEBP Image
+
+        {webpImage && (
+          <img
+            alt="from aws"
+            src={`data:image/webp;base64,${webpImage}`}
             className="mt-5 w-8/12"
           />
         )}
