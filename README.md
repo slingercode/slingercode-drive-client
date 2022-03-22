@@ -28,15 +28,14 @@ In order to facilitate the build and execution of the client and server images,
 we can create a `docker-compose.yml` file in a general context of the
 two repositories:
 
-```
-client
-  |
-   - Dockerfile
-server
-  |
-   - Dockerfile
-.env
-docker-compose.yml
+```shell
+.
+├── .env
+├── client
+│   └── Dockerfile
+├── docker-compose.yml
+└── server
+    └── Dockerfile
 ```
 
 To help this process, a `.env` file must be created with both versions, the server and the client
