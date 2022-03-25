@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [connection, setConnection] = useState(false);
-  const [pngImage, setPngImage] = useState(null);
   const [webpImage, setWebpImage] = useState(null);
 
   useEffect(() => {
@@ -17,23 +17,17 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const getPNGImage = async () => {
+    const getData = async () => {
       const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const response = await axios.get(`${serverUrl}/aws`);
-      setPngImage(response.data);
-    };
-  
-    getPNGImage();
-  }, []);
+      const response = await axios.post(`${serverUrl}/aws/get`, {
+        folder: 'noel',
+        file: '1617753568923.webp',
+      });
 
-  useEffect(() => {
-    const getWEBPImage = async () => {
-      const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const response = await axios.get(`${serverUrl}/aws/webp`);
       setWebpImage(response.data);
     };
-  
-    getWEBPImage();
+
+    getData();
   }, []);
 
   return (
@@ -42,16 +36,10 @@ const Home = () => {
         {`slingercode's cloud: Server connection ${connection}`}
       </div>
 
-      <div className="flex flex-col items-center">
-        PNG Image
-
-        {pngImage && (
-          <img
-            alt="from aws"
-            src={`data:image/png;base64,${pngImage}`}
-            className="mt-5 w-8/12"
-          />
-        )}
+      <div>
+        <Link to="upload">
+          Go to Upload
+        </Link>
       </div>
 
       <div className="flex flex-col items-center">
