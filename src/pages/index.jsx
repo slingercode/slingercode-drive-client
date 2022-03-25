@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 
 const Home = () => {
   const [connection, setConnection] = useState(false);
-  const [webpImage, setWebpImage] = useState(null);
+  const [name, setName] = useState('');
+  const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
     const getConnection = async () => {
@@ -19,16 +20,43 @@ const Home = () => {
   useEffect(() => {
     const getData = async () => {
       const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const response = await axios.post(`${serverUrl}/aws/get`, {
-        folder: 'noel',
-        file: '1617753568923.webp',
-      });
+      const { status, data} = await axios.post(
+        `${serverUrl}/aws/get-albums`,
+        { user: 'noel' },
+      );
 
-      setWebpImage(response.data);
+      if (status !== 200) {
+        return;
+      }
+
+      setAlbums(data.albums);
     };
 
     getData();
   }, []);
+
+  const handleCreateAlbum = async () => {
+    if (!name || name.trim() === '') {
+      console.log('nel');
+      return;
+    }
+  
+    const serverUrl = process.env.REACT_APP_SERVER_URL;
+    const { status, data } = await axios.post(
+      `${serverUrl}/aws/create-album`,
+      {
+        user: 'noel',
+        album: name,
+      },
+    );
+
+    if (status !== 200) {
+      return;
+    } 
+
+    setName('');
+    setAlbums((prev) => [...prev, data.album]);
+  };
 
   return (
     <div className="flex flex-col">
@@ -37,20 +65,47 @@ const Home = () => {
       </div>
 
       <div>
-        <Link to="upload">
-          Go to Upload
-        </Link>
-      </div>
+        <div>Albums</div>
 
-      <div className="flex flex-col items-center">
-        WEBP Image
+        {!albums.length && (
+          <>
+            <div>No hay albums</div>
 
-        {webpImage && (
-          <img
-            alt="from aws"
-            src={`data:image/webp;base64,${webpImage}`}
-            className="mt-5 w-8/12"
-          />
+            <input
+              value={name}
+              placeholder="Name"
+              onChange={(event) => setName(event.target.value)}
+            />
+
+            <button onClick={handleCreateAlbum}>
+              Crear Album
+            </button>
+          </>
+        )}
+
+        {!!albums.length && (
+          <div>
+            Data
+
+            {albums.map((album) => (
+              <div key={album}>
+                <Link to={`album/noel/${album}`}>
+                  {album}
+                </Link>
+              </div>
+            ))}
+
+            <div>Crear</div>
+
+            <input
+              placeholder="Name"
+              onChange={(event) => setName(event.target.value)}
+            />
+
+            <button onClick={handleCreateAlbum}>
+              Crear Album
+            </button>
+          </div>
         )}
       </div>
     </div>
