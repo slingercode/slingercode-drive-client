@@ -11,7 +11,7 @@ import { useParams } from 'react-router-dom';
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const Upload = () => {
-  const { user, album } = useParams();
+  const { album } = useParams();
 
   const [files, setFiles] = useState([]);
   const [_data, setData] = useState([]);
@@ -20,49 +20,38 @@ const Upload = () => {
   useEffect(() => {
     const getAlbumData = async () => {
       const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const { status, data } = await axios.post(
-        `${serverUrl}/aws/get-album`,
-        {
-          user,
-          album,
-        },
+      const { status, data } = await axios.get(
+        `${serverUrl}/album?id=${album}`,
       );
 
       if (status !== 200) {
         return;
       } 
 
-      setData(data.data);
+      setData(data.album.files);
     };
 
     getAlbumData();
-  }, [user, album]);
+  }, [album]);
 
   useEffect(() => {
     const getImages = async () => {
       _data.forEach(async (file) => {
         const serverUrl = process.env.REACT_APP_SERVER_URL;
-        const { status, data } = await axios.post(
-          `${serverUrl}/aws/get`,
-          {
-            user,
-            album,
-            file,
-          },
+        const { status, data } = await axios.get(
+          `${serverUrl}/aws/s3/get?album=${album}&file=thumb-${file}`,
         );
   
         if (status !== 200) {
           return;
         } 
   
-        // setData(data.data);
-        console.log(data);
         setImages((prev) => [...prev, data]);
       });
     };
 
     getImages();
-  }, [_data, user, album]);
+  }, [_data, album]);
 
   return (
     <div>
@@ -74,22 +63,23 @@ const Upload = () => {
         files={files}
         allowMultiple={true}
         onupdatefiles={setFiles}
-        server={`${process.env.REACT_APP_SERVER_URL}/aws/upload?user=${user}&album=${album}`}
+        server={`${process.env.REACT_APP_SERVER_URL}/aws/s3/upload?album=${album}`}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
+
 
       {!_data.length && !images.length && (
         <div>No data</div>
       )}
 
       {!!_data.length && !!images.length && (
-        <div>
-          {images.map((el, index) => (
+        <div className="flex">
+          {images.map((image, index) => (
             <img
               key={index}
               alt="from aws"
-              src={`data:image/webp;base64,${el}`}
-              className="mt-5 w-8/12"
+              src={`data:image/webp;base64,${image}`}
+              className="mt-5 w-2/12"
             />
           ))}
         </div>

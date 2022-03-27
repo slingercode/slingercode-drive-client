@@ -20,9 +20,8 @@ const Home = () => {
   useEffect(() => {
     const getData = async () => {
       const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const { status, data} = await axios.post(
-        `${serverUrl}/aws/get-albums`,
-        { user: 'noel' },
+      const { status, data} = await axios.get(
+        `${serverUrl}/albums`,
       );
 
       if (status !== 200) {
@@ -43,9 +42,8 @@ const Home = () => {
   
     const serverUrl = process.env.REACT_APP_SERVER_URL;
     const { status, data } = await axios.post(
-      `${serverUrl}/aws/create-album`,
+      `${serverUrl}/album`,
       {
-        user: 'noel',
         album: name,
       },
     );
@@ -55,7 +53,7 @@ const Home = () => {
     } 
 
     setName('');
-    setAlbums((prev) => [...prev, data.album]);
+    setAlbums((prev) => [...prev, { _id: data.album._id, name: data.album.name}]);
   };
 
   return (
@@ -88,9 +86,9 @@ const Home = () => {
             Data
 
             {albums.map((album) => (
-              <div key={album}>
-                <Link to={`album/noel/${album}`}>
-                  {album}
+              <div key={album._id}>
+                <Link to={`album/${album._id}`}>
+                  {album.name}
                 </Link>
               </div>
             ))}
