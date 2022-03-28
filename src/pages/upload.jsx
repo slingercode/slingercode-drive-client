@@ -15,7 +15,8 @@ const Upload = () => {
 
   const [files, setFiles] = useState([]);
   const [_data, setData] = useState([]);
-  const [images, setImages] = useState([]);
+  const [thumbs, setThumbs] = useState([]);
+  const [, setSelected] = useState(0);
 
   useEffect(() => {
     const getAlbumData = async () => {
@@ -35,7 +36,7 @@ const Upload = () => {
   }, [album]);
 
   useEffect(() => {
-    const getImages = async () => {
+    const getThumbsImages = async () => {
       _data.forEach(async (file) => {
         const serverUrl = process.env.REACT_APP_SERVER_URL;
         const { status, data } = await axios.get(
@@ -44,46 +45,69 @@ const Upload = () => {
   
         if (status !== 200) {
           return;
-        } 
-  
-        setImages((prev) => [...prev, data]);
+        }
+
+        setThumbs((prev) => [...prev, data.data]);
       });
     };
 
-    getImages();
+    getThumbsImages();
   }, [_data, album]);
 
+  // const handleFetchImage = (index) => {
+
+  // };
+
   return (
-    <div>
-      <div>Upload</div>
-
-      <FilePond
-        name="files" 
-        maxFiles={3}
-        files={files}
-        allowMultiple={true}
-        onupdatefiles={setFiles}
-        server={`${process.env.REACT_APP_SERVER_URL}/aws/s3/upload?album=${album}`}
-        labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
-      />
-
-
-      {!_data.length && !images.length && (
-        <div>No data</div>
-      )}
-
-      {!!_data.length && !!images.length && (
-        <div className="flex">
-          {images.map((image, index) => (
-            <img
+    <div className="bg-red-500 h-screen w-screen flex">
+      <div className="bg-blue-100 w-3/12 lg:w-3/12 xl:w-2/12 flex justify-center overflow-auto">
+        <div className="grid grid-flow-row gap-8">
+          {thumbs.map((thumb, index) => (
+            <button
               key={index}
-              alt="from aws"
-              src={`data:image/webp;base64,${image}`}
-              className="mt-5 w-2/12"
-            />
+              type="button"
+              className={`w-48 ${thumb.width > thumb.height ? 'h-28' : 'h-72'}`}
+              onClick={() => setSelected(index)}
+            >
+              <img
+                alt="from aws"
+                src={`data:image/webp;base64,${thumb.data}`}
+              />
+            </button>
           ))}
         </div>
-      )}
+      </div>
+
+      <div className="bg-yellow-200 w-9/12 lg:w-9/12 xl:w-10/12 flex flex-col">
+        <div className="bg-green-200 flex">
+          Header
+        </div>
+
+        <div>
+          <FilePond
+            name="files" 
+            maxFiles={3}
+            files={files}
+            allowMultiple={true}
+            onupdatefiles={setFiles}
+            server={`${process.env.REACT_APP_SERVER_URL}/aws/s3/upload?album=${album}`}
+            labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+          />
+        </div>
+
+        <div className="bg-purple-500 h-full flex justify-center items-center">
+          {/* {!images.length && ( */}
+          {/* )} */}
+
+          {/* {!!images.length && (
+            <img
+              alt="from aws"
+              src={`data:image/webp;base64,${images[selected]}`}
+              className="w-6/12 h-3/6"
+            />
+          )} */}
+        </div>
+      </div>
     </div>
   )
 };
