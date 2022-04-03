@@ -1,91 +1,91 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { FilePond, registerPlugin } from 'react-filepond';
-import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { FilePond, registerPlugin } from "react-filepond";
+import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 
-import 'filepond/dist/filepond.min.css';
-import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
-import { useParams } from 'react-router-dom';
+import axiosInstance from "../config/axios";
+import { FileType } from "../types/albums";
+
+import "filepond/dist/filepond.min.css";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const Upload = () => {
   const { album } = useParams();
 
-  const [files, setFiles] = useState([]);
-  const [_data, setData] = useState([]);
-  const [thumbs, setThumbs] = useState([]);
+  const [files, setFiles] = useState<any[]>([]);
+  const [albumFiles, setAlbumFiles] = useState<string[]>([]);
+  const [thumbs, setThumbs] = useState<FileType[]>([]);
+  const [image, setImage] = useState<FileType | undefined>();
   const [, setSelected] = useState(0);
 
   useEffect(() => {
-    const getAlbumData = async () => {
-      const serverUrl = process.env.REACT_APP_SERVER_URL;
-      const { status, data } = await axios.get(
-        `${serverUrl}/album?id=${album}`,
+    (async () => {
+      const { status, data } = await axiosInstance.get(`/album?id=${album}`);
+
+      if (status !== 200) {
+        return;
+      }
+
+      setAlbumFiles(data.album.files);
+    })();
+  }, [album]);
+
+  useEffect(() => {
+    albumFiles.forEach(async (file) => {
+      const { status, data } = await axiosInstance.get(
+        `/aws/s3/get?album=${album}&file=thumb-${file}`,
       );
 
       if (status !== 200) {
         return;
-      } 
+      }
 
-      setData(data.album.files);
-    };
+      setThumbs((prev) => [...prev, data.data]);
+    });
+  }, [albumFiles, album]);
 
-    getAlbumData();
-  }, [album]);
+  const handleFetchImage = async (index: number) => {
+    const { status, data } = await axiosInstance.get(
+      `/aws/s3/get?album=${album}&file=${albumFiles[index]}`,
+    );
 
-  useEffect(() => {
-    const getThumbsImages = async () => {
-      _data.forEach(async (file) => {
-        const serverUrl = process.env.REACT_APP_SERVER_URL;
-        const { status, data } = await axios.get(
-          `${serverUrl}/aws/s3/get?album=${album}&file=thumb-${file}`,
-        );
-  
-        if (status !== 200) {
-          return;
-        }
+    if (status !== 200) {
+      return;
+    }
 
-        setThumbs((prev) => [...prev, data.data]);
-      });
-    };
-
-    getThumbsImages();
-  }, [_data, album]);
-
-  // const handleFetchImage = (index) => {
-
-  // };
+    setImage(data.data);
+  };
 
   return (
     <div className="bg-red-500 h-screen w-screen flex">
       <div className="bg-blue-100 w-3/12 lg:w-3/12 xl:w-2/12 flex justify-center overflow-auto">
-        <div className="grid grid-flow-row gap-8">
+        {/* <div className="grid grid-flow-row gap-8"> */}
+        <div className="pt-10 flex flex-col">
           {thumbs.map((thumb, index) => (
             <button
               key={index}
               type="button"
-              className={`w-48 ${thumb.width > thumb.height ? 'h-28' : 'h-72'}`}
-              onClick={() => setSelected(index)}
+              className={`${index !== 0 ? "mt-20" : ""} w-48 ${
+                thumb.width > thumb.height ? "h-28" : "h-72"
+              }`}
+              onClick={() => handleFetchImage(index)}
             >
-              <img
-                alt="from aws"
-                src={`data:image/webp;base64,${thumb.data}`}
-              />
+              <img alt="from aws" src={`data:image/webp;base64,${thumb.data}`} />
+              <p>{thumb.name}</p>
             </button>
           ))}
         </div>
       </div>
 
       <div className="bg-yellow-200 w-9/12 lg:w-9/12 xl:w-10/12 flex flex-col">
-        <div className="bg-green-200 flex">
-          Header
-        </div>
+        <div className="bg-green-200 flex">Header</div>
 
         <div>
           <FilePond
-            name="files" 
+            name="files"
             maxFiles={3}
             files={files}
             allowMultiple={true}
@@ -96,20 +96,15 @@ const Upload = () => {
         </div>
 
         <div className="bg-purple-500 h-full flex justify-center items-center">
-          {/* {!images.length && ( */}
-          {/* )} */}
-
-          {/* {!!images.length && (
-            <img
-              alt="from aws"
-              src={`data:image/webp;base64,${images[selected]}`}
-              className="w-6/12 h-3/6"
-            />
-          )} */}
+          {image && (
+            <div className={`${image.width > image.height ? "w-5/6" : "w-3/6"}`}>
+              <img alt="full" src={`data:image/webp;base64,${image.data}`} />
+            </div>
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 };
 
-export default Upload
+export default Upload;
