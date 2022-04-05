@@ -5,6 +5,9 @@
 Create a `.env` file and insert the variables below
 
 - `REACT_APP_SERVER_URL`: URL of the server
+- `REACT_APP_AUTH0_DOMAIN`: Issuer domain for Auth0
+- `REACT_APP_AUTH0_CLIENT_ID`: Client id of a application of Auth0
+- `REACT_APP_AUTH0_AUDIENCE`: Audience scope for Auth0
 
 ## Build image (local)
 

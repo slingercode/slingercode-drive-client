@@ -1,3 +1,4 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -5,6 +6,9 @@ import axiosInstance from "../config/axios";
 import { GetAlbumType } from "../types/albums";
 
 const Home = () => {
+  const { user, isLoading, isAuthenticated, loginWithRedirect, logout } =
+    useAuth0();
+
   const [name, setName] = useState("");
   const [albums, setAlbums] = useState<GetAlbumType[]>([]);
 
@@ -34,12 +38,36 @@ const Home = () => {
     }
 
     setName("");
-    setAlbums((prev) => [...prev, { _id: data.album._id, name: data.album.name }]);
+    setAlbums((prev) => [
+      ...prev,
+      { _id: data.album._id, name: data.album.name },
+    ]);
   };
 
   return (
     <div className="flex flex-col">
       <div>{`slingercode's cloud`}</div>
+
+      <br />
+      <br />
+
+      {isLoading && <>Loading...</>}
+
+      {!isLoading && !isAuthenticated && (
+        <button onClick={() => loginWithRedirect()}>Log in</button>
+      )}
+
+      {!isLoading && isAuthenticated && (
+        <div>
+          <button onClick={() => logout({ returnTo: window.location.origin })}>
+            Log out
+          </button>
+
+          <div>{JSON.stringify(user)}</div>
+        </div>
+      )}
+
+      <div></div>
 
       <div>
         <div>Albums</div>
@@ -67,7 +95,10 @@ const Home = () => {
               </div>
             ))}
             <div>Crear</div>
-            <input placeholder="Name" onChange={(event) => setName(event.target.value)} />
+            <input
+              placeholder="Name"
+              onChange={(event) => setName(event.target.value)}
+            />
             <button onClick={handleCreateAlbum}>Crear Album</button>
           </div>
         )}
