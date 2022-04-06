@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppState, Auth0Provider as Auth0 } from "@auth0/auth0-react";
 
-import User from "./user";
+import UserProvider from "./user";
 
 type Auth0ProviderProps = {
   children: ReactNode;
@@ -27,7 +27,7 @@ const Auth0Provider = ({ children }: Auth0ProviderProps): JSX.Element => {
       redirectUri={window.location.origin}
       onRedirectCallback={onRedirectCallback}
     >
-      <User>{children}</User>
+      <UserProvider>{children}</UserProvider>
     </Auth0>
   );
 };

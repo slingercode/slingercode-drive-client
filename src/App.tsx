@@ -4,7 +4,7 @@ import Home from "./pages";
 import Dashboard from "./pages/dashboard";
 import Upload from "./pages/upload";
 
-import Authorization from "./providers/autorization";
+import Authorization from "./providers/authorization";
 
 const App = () => (
   <Routes>
