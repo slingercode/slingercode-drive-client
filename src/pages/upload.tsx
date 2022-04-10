@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FilePond, registerPlugin } from "react-filepond";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
@@ -9,47 +9,32 @@ import { FileType } from "../types/albums";
 
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import useAlbum from "../hooks/album";
+import { UserContextProvider } from "../providers/user";
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const Upload = () => {
   const { album } = useParams();
+  const currentUser = useContext(UserContextProvider);
+
+  const { albumFiles, thumbs } = useAlbum(album);
 
   const [files, setFiles] = useState<any[]>([]);
-  const [albumFiles, setAlbumFiles] = useState<string[]>([]);
-  const [thumbs, setThumbs] = useState<FileType[]>([]);
   const [image, setImage] = useState<FileType | undefined>();
-  const [, setSelected] = useState(0);
-
-  useEffect(() => {
-    (async () => {
-      const { status, data } = await axiosInstance.get(`/album?id=${album}`);
-
-      if (status !== 200) {
-        return;
-      }
-
-      setAlbumFiles(data.album.files);
-    })();
-  }, [album]);
-
-  useEffect(() => {
-    albumFiles.forEach(async (file) => {
-      const { status, data } = await axiosInstance.get(
-        `/aws/s3/get?album=${album}&file=thumb-${file}`,
-      );
-
-      if (status !== 200) {
-        return;
-      }
-
-      setThumbs((prev) => [...prev, data.data]);
-    });
-  }, [albumFiles, album]);
 
   const handleFetchImage = async (index: number) => {
+    if (!currentUser) {
+      return;
+    }
+
     const { status, data } = await axiosInstance.get(
-      `/aws/s3/get?album=${album}&file=${albumFiles[index]}`,
+      `/aws/s3/get?user_id=${currentUser._id}&album_id=${album}&file_name=${albumFiles[index]}`,
+      {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      },
     );
 
     if (status !== 200) {
@@ -59,10 +44,13 @@ const Upload = () => {
     setImage(data.data);
   };
 
+  if (!currentUser) {
+    return <>validating...</>;
+  }
+
   return (
     <div className="bg-red-500 h-screen w-screen flex">
       <div className="bg-blue-100 w-3/12 lg:w-3/12 xl:w-2/12 flex justify-center overflow-auto">
-        {/* <div className="grid grid-flow-row gap-8"> */}
         <div className="pt-10 flex flex-col">
           {thumbs.map((thumb, index) => (
             <button
@@ -73,8 +61,12 @@ const Upload = () => {
               }`}
               onClick={() => handleFetchImage(index)}
             >
-              <img alt="from aws" src={`data:image/webp;base64,${thumb.data}`} />
-              <p>{thumb.name}</p>
+              <img
+                alt="from aws"
+                src={`data:image/webp;base64,${thumb.data}`}
+              />
+
+              <p className="text-red-400">{thumb.name}</p>
             </button>
           ))}
         </div>
@@ -90,14 +82,25 @@ const Upload = () => {
             files={files}
             allowMultiple={true}
             onupdatefiles={setFiles}
-            server={`${process.env.REACT_APP_SERVER_URL}/aws/s3/upload?album=${album}`}
+            server={{
+              url: process.env.REACT_APP_SERVER_URL,
+              process: {
+                url: `/aws/s3/upload?user_id=${currentUser._id}&album_id=${album}`,
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${currentUser.token}`,
+                },
+              },
+            }}
             labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
           />
         </div>
 
         <div className="bg-purple-500 h-full flex justify-center items-center">
           {image && (
-            <div className={`${image.width > image.height ? "w-5/6" : "w-3/6"}`}>
+            <div
+              className={`${image.width > image.height ? "w-5/6" : "w-3/6"}`}
+            >
               <img alt="full" src={`data:image/webp;base64,${image.data}`} />
             </div>
           )}

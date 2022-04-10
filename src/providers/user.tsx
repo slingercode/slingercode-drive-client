@@ -1,8 +1,10 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { ReactNode, useEffect, useState } from "react";
+import { createContext, ReactNode, useEffect, useState } from "react";
 
 import axiosInstance from "../config/axios";
-import { LOCALSTORAGE_TOKEN } from "../utils/contants";
+import { UserType } from "../types/user";
+
+export const UserContextProvider = createContext<UserType | null>(null);
 
 type UserProps = {
   children: ReactNode;
@@ -11,21 +13,13 @@ type UserProps = {
 const User = ({ children }: UserProps): JSX.Element => {
   const { user, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
 
-  const [, setCurrentUser] = useState<{
-    _id: string;
-    name: string;
-    email: string;
-    auth0: string;
-    username: string;
-  } | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
         if (isAuthenticated && user && user.sub && user.name && user.email) {
           const token = await getAccessTokenSilently();
-
-          localStorage.setItem(LOCALSTORAGE_TOKEN, token);
 
           const response = await axiosInstance.get("/me", {
             headers: {
@@ -40,15 +34,20 @@ const User = ({ children }: UserProps): JSX.Element => {
             throw new Error();
           }
 
-          setCurrentUser(response.data);
+          setCurrentUser({ ...response.data, token });
         }
       } catch (error) {
         logout({ returnTo: window.location.origin });
+        setCurrentUser(null);
       }
     })();
   }, [user, isAuthenticated, getAccessTokenSilently, logout]);
 
-  return <>{children}</>;
+  return (
+    <UserContextProvider.Provider value={currentUser}>
+      {children}
+    </UserContextProvider.Provider>
+  );
 };
 
 export default User;
