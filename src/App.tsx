@@ -4,7 +4,7 @@ import AppContainer from "./components/app-container";
 
 import Home from "./pages";
 import Dashboard from "./pages/dashboard";
-import Upload from "./pages/upload";
+import Album from "./pages/album";
 
 import Authorization from "./providers/authorization";
 
@@ -26,7 +26,7 @@ const App = () => (
         path="/album/:album"
         element={
           <Authorization>
-            <Upload />
+            <Album />
           </Authorization>
         }
       />

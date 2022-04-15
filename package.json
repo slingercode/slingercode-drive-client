@@ -18,6 +18,8 @@
   "dependencies": {
     "@auth0/auth0-react": "^1.9.0",
     "@radix-ui/colors": "^0.1.8",
+    "@radix-ui/react-dialog": "^0.1.7",
+    "@radix-ui/react-icons": "^1.1.0",
     "axios": "^0.26.1",
     "filepond": "^4.30.3",
     "filepond-plugin-image-exif-orientation": "^1.0.11",
